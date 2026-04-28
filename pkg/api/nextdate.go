@@ -1,73 +1,70 @@
 package api
 
 import (
-	"strconv"
-	"time"
-	"strings"
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
 )
 
-var fError = errors.New("указан неверный формат repeat")
+var fError = errors.New("Указан неверный формат правила повторения (repeat)")
 
 func dFunc(date, now time.Time, days string) (string, error) {
 	if days == "" {
 		return "", fError
-	} 
+	}
 	interval, err := strconv.Atoi(days)
-		if err != nil {
-			return "",  err
+	if err != nil {
+		return "", err
+	}
+	if interval > 0 && interval <= 400 {
+		for {
+			date = date.AddDate(0, 0, interval)
+			if afterNow(date, now) {
+				break
+			}
 		}
-		if interval > 0 && interval <= 400 {
-			for {
-    			date = date.AddDate(0, 0, interval)
-    			if afterNow(date, now) {
-        			break
-    			}
-			} 
-			return date.Format(DFormat), err
-		} else {
-				return "", fError
-		}
+		return date.Format(DFormat), err
+	} else {
+		return "", fError
+	}
 }
 
 func yFunc(date, now time.Time) string {
 	for {
-    		date = date.AddDate(1, 0, 0)
-    		if afterNow(date, now) {
-        		break
-    		}
-	} 
+		date = date.AddDate(1, 0, 0)
+		if afterNow(date, now) {
+			break
+		}
+	}
 	return date.Format(DFormat)
 }
 
 func afterNow(date, now time.Time) bool {
-	if  date.After(now) {
-		return true
-	} else {
-		return false
-	}
+	return date.After(now)
 }
 
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	date, err := time.Parse(DFormat, dstart)
 	if err != nil {
-		return "",  err
+		return "", err
 	}
 	rules := strings.Split(repeat, " ")
-	
-	switch(rules[0]) {
-		case "":
-			return "",  fError
-		case "d":
-			if len(rules) > 1 {
+
+	switch rules[0] {
+	case "d":
+		if len(rules) > 1 {
 			return dFunc(date, now, rules[1])
-			} else {
-				return "",  fError
-			}
-		case "y":
-			return yFunc(date, now), nil
-		default:
+		} else {
 			return "", fError
+		}
+	case "y":
+		return yFunc(date, now), nil
+	case "":
+		return "", nil
+	default:
+		fmt.Println(fError)
+		return "", fError
 	}
-	return date.Format(DFormat),  err
 }

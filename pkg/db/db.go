@@ -2,11 +2,14 @@ package db
 
 import (
 	"database/sql"
-	_ "modernc.org/sqlite"
 	"fmt"
 	"os"
+
+	_ "modernc.org/sqlite"
 )
-var db *sql.DB 
+
+var db *sql.DB
+
 const schema = `CREATE TABLE scheduler (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 	date CHAR(8) NOT NULL DEFAULT "", 
@@ -23,20 +26,19 @@ func Init(dbFile string) error {
 	if err != nil {
 		install = true
 	}
-	db, err := sql.Open("sqlite", dbFile)
-    if err != nil {
-        fmt.Println(err)
-        return err
-    }
-    defer db.Close()
-	
-	if install {
-	_, err := db.Exec(schema)
+	db, err = sql.Open("sqlite", dbFile)
 	if err != nil {
-        fmt.Println(err)
-        return err
-    }
+		fmt.Println(err)
+		return err
 	}
-	//fmt.Println(db)
+
+	if install {
+		_, err := db.Exec(schema)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		install = false
+	}
 	return nil
 }
