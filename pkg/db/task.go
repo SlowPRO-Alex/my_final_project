@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"time"
 )
 
 type Task struct {
@@ -25,5 +27,56 @@ func AddTask(task *Task) (int64, error) {
 	if err == nil {
 		id, err = res.LastInsertId()
 	}
+	fmt.Println("Add new task: id", id, task)
 	return id, err
+}
+
+func Tasks(limit int, search string) ([]*Task, error) {
+	tasks := make([]*Task, limit)
+	//var rows *sql.Rows
+	var query string
+	fmt.Println(search)
+	if search == "" {
+		query = fmt.Sprintf("SELECT * FROM scheduler ORDER BY date LIMIT %d", limit)
+		/*res, err := db.Query("SELECT * FROM scheduler ORDER BY date LIMIT ?", limit)
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer rows.Close()
+		rows = res*/
+	} else {
+		parsedDate, err := time.Parse("02.01.2006", search)
+		fmt.Println(parsedDate.Format("20060102"))
+		if err != nil {
+			fmt.Println("Ошибка при парсинге даты:", err)
+			query = fmt.Sprintf("SELECT * FROM scheduler WHERE title LIKE '%%%s%%' OR comment LIKE '%%%s%%' ORDER BY date LIMIT %d", search, search, limit)
+		} else {
+			formated := parsedDate.Format("20060102")
+			query = fmt.Sprintf("SELECT * FROM scheduler WHERE date LIKE '%s' ORDER BY date LIMIT %d", formated, limit)
+		}
+		//query = fmt.Sprintf("SELECT * FROM scheduler WHERE title LIKE %s OR comment LIKE %s ORDER BY date LIMIT %d", search, search, limit)
+	}
+	fmt.Println(query)
+	rows, err := db.Query(query)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer rows.Close()
+	var i int
+	for rows.Next() {
+		var task Task
+		err := rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+		if err != nil {
+			fmt.Println(err)
+			return tasks[0:i], err
+		}
+		fmt.Println(task)
+		tasks[i] = &task
+		if i == limit-1 {
+			return tasks[0 : i+1], err
+		} else {
+			i++
+		}
+	}
+	return tasks[0:i], nil
 }

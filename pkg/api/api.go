@@ -33,4 +33,5 @@ func Init() {
 	http.Handle(`/`, http.FileServer(http.Dir("./web/")))
 	http.HandleFunc("/api/nextdate", nextDayHandler)
 	http.HandleFunc("/api/task", taskHandler)
+	http.HandleFunc("/api/tasks", tasksHandler)
 }

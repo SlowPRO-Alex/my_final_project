@@ -66,7 +66,6 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJson(w, map[string]string{"id": fmt.Sprintf("%s", strconv.FormatInt(res, 10))})
-	fmt.Println("New task added: ", map[string]string{"id": fmt.Sprintf("%s", strconv.FormatInt(res, 10))})
 }
 
 func taskHandler(w http.ResponseWriter, r *http.Request) {
