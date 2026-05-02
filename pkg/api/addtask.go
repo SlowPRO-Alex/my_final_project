@@ -20,7 +20,8 @@ func writeJson(w http.ResponseWriter, data any) {
 }
 
 func checkDate(task db.Task) (date string, err error) {
-	now := time.Now().UTC()
+	now := time.Now()
+	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	var next string
 	if task.Date == "" {
 		task.Date = now.Format(DFormat)
@@ -30,21 +31,16 @@ func checkDate(task db.Task) (date string, err error) {
 		fmt.Println(err)
 	}
 	next, err = NextDate(now, task.Date, task.Repeat)
-	//fmt.Println("Next:", next)
 	if err != nil {
 		fmt.Println(err)
 	}
-	//fmt.Println("Task:", task.Date)
 	if afterNow(now, t) {
 		if len(task.Repeat) == 0 {
 			task.Date = now.Format(DFormat)
-			//fmt.Println("?")
 		} else {
 			task.Date = next
-			//fmt.Println("next Task:", task.Date)
 		}
 	}
-	//fmt.Println("New Task:", task.Date)
 	return task.Date, err
 }
 

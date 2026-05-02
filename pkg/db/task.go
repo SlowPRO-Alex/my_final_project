@@ -58,20 +58,11 @@ func AddTask(task *Task) (int64, error) {
 
 func Tasks(limit int, search string) ([]*Task, error) {
 	tasks := make([]*Task, limit)
-	//var rows *sql.Rows
 	var query string
-	fmt.Println(search)
 	if search == "" {
 		query = fmt.Sprintf("SELECT * FROM scheduler ORDER BY date LIMIT %d", limit)
-		/*res, err := db.Query("SELECT * FROM scheduler ORDER BY date LIMIT ?", limit)
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer rows.Close()
-		rows = res*/
 	} else {
 		parsedDate, err := time.Parse("02.01.2006", search)
-		fmt.Println(parsedDate.Format("20060102"))
 		if err != nil {
 			fmt.Println("Ошибка при парсинге даты:", err)
 			query = fmt.Sprintf("SELECT * FROM scheduler WHERE title LIKE '%%%s%%' OR comment LIKE '%%%s%%' ORDER BY date LIMIT %d", search, search, limit)
@@ -79,9 +70,7 @@ func Tasks(limit int, search string) ([]*Task, error) {
 			formated := parsedDate.Format("20060102")
 			query = fmt.Sprintf("SELECT * FROM scheduler WHERE date LIKE '%s' ORDER BY date LIMIT %d", formated, limit)
 		}
-		//query = fmt.Sprintf("SELECT * FROM scheduler WHERE title LIKE %s OR comment LIKE %s ORDER BY date LIMIT %d", search, search, limit)
 	}
-	//fmt.Println(query)
 	rows, err := db.Query(query)
 	if err != nil {
 		fmt.Println(err)
@@ -95,7 +84,6 @@ func Tasks(limit int, search string) ([]*Task, error) {
 			fmt.Println(err)
 			return tasks[0:i], err
 		}
-		//fmt.Println(task)
 		tasks[i] = &task
 		if i == limit-1 {
 			return tasks[0 : i+1], err
