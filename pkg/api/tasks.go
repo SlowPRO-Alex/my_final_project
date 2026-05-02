@@ -18,7 +18,5 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	writeJson(w, TasksResp{
-		Tasks: tasks,
-	})
+	writeJson(w, TasksResp{Tasks: tasks})
 }

@@ -56,6 +56,10 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		writeJson(w, map[string]string{"error": err.Error()})
 		return
 	}
+	if task.Title == "" {
+		writeJson(w, map[string]string{"error": "Не указан title"})
+		return
+	}
 	task.Date, err = checkDate(task)
 	if err != nil {
 		writeJson(w, map[string]string{"error": err.Error()})
@@ -71,6 +75,20 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func taskHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case http.MethodDelete:
+		id := r.URL.Query().Get("id")
+		_, err := strconv.Atoi(id)
+		if id != "" && err == nil {
+			err := db.DeleteTask(id)
+			if err != nil {
+				writeJson(w, map[string]string{"error": err.Error()})
+				return
+			}
+			writeJson(w, nil)
+			return
+		} else {
+			writeJson(w, map[string]string{"error": "Не указан идентификатор"})
+		}
 	case http.MethodPost:
 		addTaskHandler(w, r)
 	case http.MethodGet:
@@ -97,7 +115,6 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 			writeJson(w, map[string]string{"error": err.Error()})
 			return
 		}
-		fmt.Println(task)
 		task.Date, err = checkDate(task)
 		if err != nil {
 			writeJson(w, map[string]string{"error": err.Error()})
@@ -108,7 +125,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 			writeJson(w, map[string]string{"error": err.Error()})
 			return
 		}
-		writeJson(w, "")
+		writeJson(w, map[string]string{"": ""})
 
 	}
 }
