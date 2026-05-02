@@ -15,6 +15,31 @@ type Task struct {
 	Repeat  string `json:"repeat"`
 }
 
+func UpdateTask(task *Task) error {
+	// параметры пропущены, не забудьте указать WHERE
+	query := `UPDATE scheduler SET date = :date, title = :title, comment = :comment, repeat = :repeat WHERE id = :id`
+	res, err := db.Exec(query, sql.Named("date", task.Date), sql.Named("title", task.Title), sql.Named("comment", task.Comment), sql.Named("repeat", task.Repeat), sql.Named("id", task.ID))
+	if err != nil {
+		return err
+	}
+	// метод RowsAffected() возвращает количество записей к которым
+	// была применена SQL команда
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf(`incorrect id for updating task`)
+	}
+	return nil
+}
+
+func GetTask(id string) (*Task, error) {
+	var task Task
+	err := db.QueryRow(fmt.Sprintf("SELECT * FROM scheduler WHERE id LIKE '%s'", id)).Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	return &task, err
+}
+
 func AddTask(task *Task) (int64, error) {
 	var id int64
 	if task.Title == "" {
@@ -56,7 +81,7 @@ func Tasks(limit int, search string) ([]*Task, error) {
 		}
 		//query = fmt.Sprintf("SELECT * FROM scheduler WHERE title LIKE %s OR comment LIKE %s ORDER BY date LIMIT %d", search, search, limit)
 	}
-	fmt.Println(query)
+	//fmt.Println(query)
 	rows, err := db.Query(query)
 	if err != nil {
 		fmt.Println(err)
@@ -70,7 +95,7 @@ func Tasks(limit int, search string) ([]*Task, error) {
 			fmt.Println(err)
 			return tasks[0:i], err
 		}
-		fmt.Println(task)
+		//fmt.Println(task)
 		tasks[i] = &task
 		if i == limit-1 {
 			return tasks[0 : i+1], err

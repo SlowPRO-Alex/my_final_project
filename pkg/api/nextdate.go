@@ -42,11 +42,13 @@ func yFunc(date, now time.Time) string {
 }
 
 func afterNow(date, now time.Time) bool {
+	fmt.Println(date, now, date.After(now))
 	return date.After(now)
 }
 
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	date, err := time.Parse(DFormat, dstart)
+	fmt.Println(date)
 	if err != nil {
 		return "", err
 	}
