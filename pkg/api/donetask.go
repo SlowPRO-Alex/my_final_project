@@ -11,7 +11,7 @@ func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	id := params.Get("id")
 	if id == "" {
-		writeJson(w, map[string]string{"error": "Не указан ID задачи!"})
+		writeJson(w, map[string]string{"error": "id is not specified"})
 		return
 	}
 	task, err := db.GetTask(id)

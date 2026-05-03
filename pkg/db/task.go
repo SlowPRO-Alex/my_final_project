@@ -17,7 +17,7 @@ type Task struct {
 
 func DeleteTask(id string) error {
 	_, err := db.Exec("DELETE FROM scheduler WHERE id = :id", sql.Named("id", id))
-	fmt.Printf("Задача %s удалена\n", id)
+	fmt.Printf("Delete task: id %s \n", id)
 	return err
 }
 
@@ -38,17 +38,14 @@ func UpdateDate(next string, id string) error {
 }
 
 func UpdateTask(task *Task) error {
-	// параметры пропущены, не забудьте указать WHERE
 	if task.Title == "" {
-		return fmt.Errorf("Не указан title")
+		return fmt.Errorf("title is not specified")
 	}
 	query := `UPDATE scheduler SET date = :date, title = :title, comment = :comment, repeat = :repeat WHERE id = :id`
 	res, err := db.Exec(query, sql.Named("date", task.Date), sql.Named("title", task.Title), sql.Named("comment", task.Comment), sql.Named("repeat", task.Repeat), sql.Named("id", task.ID))
 	if err != nil {
 		return err
 	}
-	// метод RowsAffected() возвращает количество записей к которым
-	// была применена SQL команда
 	count, err := res.RowsAffected()
 	if err != nil {
 		return err
@@ -68,7 +65,7 @@ func GetTask(id string) (*Task, error) {
 func AddTask(task *Task) (int64, error) {
 	var id int64
 	if task.Title == "" {
-		return id, errors.New("Не указан заголовок задачи")
+		return id, errors.New("title is not specified")
 	}
 
 	// определите запрос
@@ -89,7 +86,7 @@ func Tasks(limit int, search string) ([]*Task, error) {
 	} else {
 		parsedDate, err := time.Parse("02.01.2006", search)
 		if err != nil {
-			fmt.Println("Ошибка при парсинге даты:", err)
+			fmt.Println(err)
 			query = fmt.Sprintf("SELECT * FROM scheduler WHERE title LIKE '%%%s%%' OR comment LIKE '%%%s%%' ORDER BY date LIMIT %d", search, search, limit)
 		} else {
 			formated := parsedDate.Format("20060102")

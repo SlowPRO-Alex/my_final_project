@@ -10,12 +10,10 @@ import (
 	"time"
 )
 
-var fError = errors.New("Указан неверный формат правила повторения (repeat)")
+var fError = errors.New("incorrect repeat format")
 
 func mFunc(dstart, now time.Time, rules []string) (string, error) {
 	var mounthRules []string
-	//mounthConst := [12]string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
-
 	mounthDayRules := strings.Split(rules[1], ",")
 	if len(rules) > 2 {
 		mounthRules = strings.Split(rules[2], ",")

@@ -34,7 +34,6 @@ func checkDate(task db.Task) (date string, err error) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(next, t)
 	if afterNow(now, t) {
 		if len(task.Repeat) == 0 {
 			task.Date = now.Format(DFormat)
@@ -58,7 +57,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if task.Title == "" {
-		writeJson(w, map[string]string{"error": "Не указан title"})
+		writeJson(w, map[string]string{"error": "title is not specified"})
 		return
 	}
 	task.Date, err = checkDate(task)
@@ -88,7 +87,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 			writeJson(w, EmptyStruct{})
 			return
 		} else {
-			writeJson(w, map[string]string{"error": "Не указан идентификатор"})
+			writeJson(w, map[string]string{"error": "id is not specified"})
 		}
 	case http.MethodPost:
 		addTaskHandler(w, r)
@@ -96,13 +95,13 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("id") != "" {
 			task, err := db.GetTask(r.URL.Query().Get("id"))
 			if err != nil {
-				fmt.Println("Задача не найдена:", err)
-				writeJson(w, map[string]string{"error": "Задача не найдена"})
+				fmt.Println("Task not found:", err)
+				writeJson(w, map[string]string{"error": "task not found"})
 				return
 			}
 			writeJson(w, task)
 		} else {
-			writeJson(w, map[string]string{"error": "Не указан идентификатор"})
+			writeJson(w, map[string]string{"error": "id is not specified"})
 		}
 	case http.MethodPut:
 		var task db.Task

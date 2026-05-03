@@ -1,13 +1,14 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
-	"github.com/SlowPRO-Alex/my_final_project/tests"
-	"github.com/SlowPRO-Alex/my_final_project/pkg/db"
-	"github.com/SlowPRO-Alex/my_final_project/pkg/api"
+	"fmt"
+	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/SlowPRO-Alex/my_final_project/pkg/api"
+	"github.com/SlowPRO-Alex/my_final_project/pkg/db"
+	"github.com/SlowPRO-Alex/my_final_project/tests"
 )
 
 func main() {
@@ -19,17 +20,17 @@ func main() {
 	if dbFile == "" {
 		dbFile = tests.DBFile
 	}
-	
+
 	err := db.Init(dbFile)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Printf("Запускаем сервер.\nАдрес: localhost:%s\n",sPort)
+	fmt.Printf("Start server.\nlocalhost:%s\n", sPort)
 	api.Init()
-    err = http.ListenAndServe(fmt.Sprintf(":%s",sPort), nil)
-    if err != nil {
-        panic(err)
-    }
+	err = http.ListenAndServe(fmt.Sprintf(":%s", sPort), nil)
+	if err != nil {
+		panic(err)
+	}
 
-} 
+}
