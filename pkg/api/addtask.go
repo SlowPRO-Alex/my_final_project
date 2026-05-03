@@ -34,6 +34,7 @@ func checkDate(task db.Task) (date string, err error) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(next, t)
 	if afterNow(now, t) {
 		if len(task.Repeat) == 0 {
 			task.Date = now.Format(DFormat)
@@ -84,7 +85,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 				writeJson(w, map[string]string{"error": err.Error()})
 				return
 			}
-			writeJson(w, nil)
+			writeJson(w, EmptyStruct{})
 			return
 		} else {
 			writeJson(w, map[string]string{"error": "Не указан идентификатор"})
@@ -125,7 +126,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 			writeJson(w, map[string]string{"error": err.Error()})
 			return
 		}
-		writeJson(w, map[string]string{"": ""})
+		writeJson(w, EmptyStruct{})
 
 	}
 }

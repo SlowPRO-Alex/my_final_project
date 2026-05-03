@@ -1,34 +1,12 @@
 package api
 
 import (
-	"fmt"
-	"io"
 	"net/http"
-	"time"
 )
 
 const DFormat = "20060102"
 
-func nextDayHandler(w http.ResponseWriter, req *http.Request) {
-	now := time.Now()
-	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	sNow := req.URL.Query().Get("now")
-	if len(sNow) > 0 {
-		pNow, err := time.Parse(DFormat, sNow)
-		now = pNow
-
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-	dstart := req.URL.Query().Get("date")
-	repeat := req.URL.Query().Get("repeat")
-	answer, err := NextDate(now, dstart, repeat)
-	if err != nil {
-		fmt.Println(err)
-	}
-	io.WriteString(w, answer)
-}
+type EmptyStruct struct{}
 
 func Init() {
 	http.Handle(`/`, http.FileServer(http.Dir("./web/")))

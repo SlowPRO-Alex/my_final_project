@@ -39,5 +39,5 @@ func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	writeJson(w, nil)
+	writeJson(w, EmptyStruct{})
 }
