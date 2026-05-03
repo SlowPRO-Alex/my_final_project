@@ -13,12 +13,19 @@ import (
 
 func main() {
 	sPort := os.Getenv("TODO_PORT")
-	dbFile := os.Getenv("TODO_DBFILE")
 	if sPort == "" {
 		sPort = strconv.Itoa(tests.Port)
+	} else {
+		fmt.Printf("TODO_PORT = %s\n", sPort)
 	}
+	dbFile := os.Getenv("TODO_DBFILE")
 	if dbFile == "" {
 		dbFile = tests.DBFile
+	} else {
+		fmt.Printf("TODO_DBFILE = %s\n", dbFile)
+	}
+	if os.Getenv("TODO_PASSWORD") != "" {
+		fmt.Printf("TODO_PASSWORD = %s\n", os.Getenv("TODO_PASSWORD"))
 	}
 
 	err := db.Init(dbFile)
