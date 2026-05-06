@@ -11,18 +11,18 @@ func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	id := params.Get("id")
 	if id == "" {
-		writeJson(w, map[string]string{"error": "id is not specified"})
+		writeJson(w, map[string]string{"error": "id is not specified"}, http.StatusBadRequest)
 		return
 	}
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
 		return
 	}
 	if len(task.Repeat) == 0 {
 		err = db.DeleteTask(id)
 		if err != nil {
-			writeJson(w, map[string]string{"error": err.Error()})
+			writeJson(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
 			return
 		}
 	} else {
@@ -30,14 +30,14 @@ func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 		now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 		next, err := NextDate(now, task.Date, task.Repeat)
 		if err != nil {
-			writeJson(w, map[string]string{"error": err.Error()})
+			writeJson(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
 			return
 		}
 		err = db.UpdateDate(next, id)
 		if err != nil {
-			writeJson(w, map[string]string{"error": err.Error()})
+			writeJson(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
 			return
 		}
 	}
-	writeJson(w, EmptyStruct{})
+	writeJson(w, EmptyStruct{}, http.StatusOK)
 }

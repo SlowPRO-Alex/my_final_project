@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,24 +17,24 @@ func main() {
 	if sPort == "" {
 		sPort = strconv.Itoa(tests.Port)
 	} else {
-		fmt.Printf("TODO_PORT = %s\n", sPort)
+		log.Printf("TODO_PORT = %s\n", sPort)
 	}
 	dbFile := os.Getenv("TODO_DBFILE")
 	if dbFile == "" {
 		dbFile = tests.DBFile
 	} else {
-		fmt.Printf("TODO_DBFILE = %s\n", dbFile)
+		log.Printf("TODO_DBFILE = %s\n", dbFile)
 	}
 	if os.Getenv("TODO_PASSWORD") != "" {
-		fmt.Printf("TODO_PASSWORD = %s\n", os.Getenv("TODO_PASSWORD"))
+		log.Printf("TODO_PASSWORD = %s\n", os.Getenv("TODO_PASSWORD"))
 	}
 
 	err := db.Init(dbFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
-	fmt.Printf("Start server.\nlocalhost:%s\n", sPort)
+	log.Printf("Start server. localhost:%s\n", sPort)
 	api.Init()
 	err = http.ListenAndServe(fmt.Sprintf(":%s", sPort), nil)
 	if err != nil {

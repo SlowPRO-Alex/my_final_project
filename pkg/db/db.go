@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"os"
 
 	_ "modernc.org/sqlite"
@@ -28,16 +28,17 @@ func Init(dbFile string) error {
 	}
 	db, err = sql.Open("sqlite", dbFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return err
 	}
 
 	if install {
 		_, err := db.Exec(schema)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return err
 		}
+		defer db.Close()
 		install = false
 	}
 	return nil

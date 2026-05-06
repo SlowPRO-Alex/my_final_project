@@ -4,7 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -12,16 +13,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type SignInRequest struct {
+type AuthPass struct {
 	Password string `json:"password"`
 }
 
-type SignInResponse struct {
-	Token string `json:"token,omitempty"`
-	Error string `json:"error,omitempty"`
-}
-
 var jwtSecret = []byte("some-secret-key")
+var pass = os.Getenv("TODO_PASSWORD")
 
 func someHash(s string) string {
 	sum := sha256.Sum256([]byte(s))
@@ -38,36 +35,40 @@ func generateJWT(pass string) (string, error) {
 }
 
 func SignInHandler(w http.ResponseWriter, r *http.Request) {
-	var req SignInRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
+	var authPass AuthPass
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "incorrect request", http.StatusBadRequest)
+		writeJson(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
 		return
 	}
-	authPass := req.Password
-	fmt.Printf("input password: %s\n", authPass)
-	pass := os.Getenv("TODO_PASSWORD")
+	err = json.Unmarshal(body, &authPass)
+	if err != nil {
+		writeJson(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
+		return
+	}
+	//authPass := r.URL.Query().Get("password")
+	log.Printf("TODO_PASSWORD: %s\n", pass)
+	log.Printf("input password: %s\n", authPass.Password)
 	if pass == "" {
-		writeJson(w, SignInResponse{Error: "auth off"})
+		writeJson(w, map[string]string{"error": "auth off"}, http.StatusBadRequest)
 		return
 	}
-	if authPass != pass {
-		http.Error(w, "invalid password", http.StatusBadRequest)
+	if authPass.Password != pass {
+		writeJson(w, map[string]string{"error": "invalid password"}, http.StatusBadRequest)
 		return
 	}
 	token, err := generateJWT(pass)
 	if err != nil {
-		writeJson(w, SignInResponse{Error: "error generate token"})
+		writeJson(w, map[string]string{"error": "error generate token"}, http.StatusInternalServerError)
 		return
 	}
-	fmt.Printf("correct password: %s, JWT-token: %s\n", pass, token)
-	writeJson(w, SignInResponse{Token: token})
+	log.Printf("correct password: %s, JWT-token: %s\n", pass, token)
+	writeJson(w, map[string]string{"token": token}, http.StatusOK)
 }
 
 func auth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// смотрим наличие пароля
-		pass := os.Getenv("TODO_PASSWORD")
 		if len(pass) > 0 {
 			var tokenString string // JWT-токен из куки
 			// получаем куку
@@ -75,7 +76,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			if err == nil {
 				tokenString = cookie.Value
 			} else {
-				http.Error(w, "Authentication required", http.StatusUnauthorized)
+				writeJson(w, map[string]string{"error": "Authentication required"}, http.StatusUnauthorized)
 				return
 			}
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -88,23 +89,23 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 
 			if err != nil || !token.Valid {
 				// возвращаем ошибку авторизации 401
-				http.Error(w, "authentification required", http.StatusUnauthorized)
+				writeJson(w, map[string]string{"error": "Authentication required"}, http.StatusUnauthorized)
 				return
 			}
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok {
-				http.Error(w, "invalid token claims", http.StatusUnauthorized)
+				writeJson(w, map[string]string{"error": "invalid token claims"}, http.StatusUnauthorized)
 				return
 			}
 
 			hashInToken, ok := claims["hash"].(string)
 			if !ok {
-				http.Error(w, "invalid token data", http.StatusUnauthorized)
+				writeJson(w, map[string]string{"error": "invalid token data"}, http.StatusUnauthorized)
 				return
 			}
 
 			if hashInToken != someHash(pass) {
-				http.Error(w, "invalid token hash", http.StatusUnauthorized)
+				writeJson(w, map[string]string{"error": "invalid token hash"}, http.StatusUnauthorized)
 				return
 			}
 		}

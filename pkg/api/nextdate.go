@@ -2,15 +2,14 @@ package api
 
 import (
 	"errors"
-	"fmt"
-	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var fError = errors.New("incorrect repeat format")
+var errF = errors.New("incorrect repeat format")
 
 func mFunc(dstart, now time.Time, rules []string) (string, error) {
 	var mounthRules []string
@@ -47,11 +46,11 @@ func mFunc(dstart, now time.Time, rules []string) (string, error) {
 							}
 						}
 					} else {
-						return "", fError
+						return "", errF
 					}
 				}
 			} else {
-				return "", fError
+				return "", errF
 			}
 		}
 	}
@@ -75,7 +74,7 @@ func mFunc(dstart, now time.Time, rules []string) (string, error) {
 func wFunc(dstart, now time.Time, weekDays string) (string, error) {
 	week := [7]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 	if weekDays == "" {
-		return "", fError
+		return "", errF
 	}
 	weekRules := strings.Split(weekDays, ",")
 	date := dstart
@@ -95,7 +94,7 @@ func wFunc(dstart, now time.Time, weekDays string) (string, error) {
 				}
 			}
 		} else {
-			return "", fError
+			return "", errF
 		}
 	}
 	d, err := time.Parse(DFormat, weekRules[0])
@@ -117,7 +116,7 @@ func wFunc(dstart, now time.Time, weekDays string) (string, error) {
 
 func dFunc(date, now time.Time, days string) (string, error) {
 	if days == "" {
-		return "", fError
+		return "", errF
 	}
 	interval, err := strconv.Atoi(days)
 	if err != nil {
@@ -132,7 +131,7 @@ func dFunc(date, now time.Time, days string) (string, error) {
 		}
 		return date.Format(DFormat), err
 	} else {
-		return "", fError
+		return "", errF
 	}
 }
 
@@ -162,7 +161,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		if len(rules) > 1 {
 			return dFunc(date, now, rules[1])
 		} else {
-			return "", fError
+			return "", errF
 		}
 	case "y":
 		return yFunc(date, now), nil
@@ -172,37 +171,44 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		if len(rules) > 1 {
 			return wFunc(date, now, rules[1])
 		} else {
-			return "", fError
+			return "", errF
 		}
 	case "m":
 		if len(rules) > 1 {
 			return mFunc(date, now, rules)
 		} else {
-			return "", fError
+			return "", errF
 		}
 	default:
-		fmt.Println(fError)
-		return "", fError
+		log.Println(errF)
+		return "", errF
 	}
 }
 
-func nextDayHandler(w http.ResponseWriter, req *http.Request) {
+func nextDayHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJson(w, map[string]string{"error": "Method Not Allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
 	now := time.Now()
 	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	sNow := req.URL.Query().Get("now")
+	sNow := r.URL.Query().Get("now")
 	if len(sNow) > 0 {
 		pNow, err := time.Parse(DFormat, sNow)
 		now = pNow
 
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	}
-	dstart := req.URL.Query().Get("date")
-	repeat := req.URL.Query().Get("repeat")
+	dstart := r.URL.Query().Get("date")
+	repeat := r.URL.Query().Get("repeat")
 	answer, err := NextDate(now, dstart, repeat)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
-	io.WriteString(w, answer)
+	_, err = w.Write([]byte(answer))
+	if err != nil {
+		log.Println(err)
+	}
 }
