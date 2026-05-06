@@ -33,6 +33,7 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+	defer db.Close()
 
 	log.Printf("Start server. localhost:%s\n", sPort)
 	api.Init()

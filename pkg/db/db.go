@@ -19,6 +19,13 @@ const schema = `CREATE TABLE scheduler (
 	);
 	CREATE INDEX task_date ON scheduler (date);`
 
+func Close() error {
+	if db != nil {
+		return db.Close()
+	}
+	return nil
+}
+
 func Init(dbFile string) error {
 	_, err := os.Stat(dbFile)
 
@@ -38,7 +45,6 @@ func Init(dbFile string) error {
 			log.Println(err)
 			return err
 		}
-		defer db.Close()
 		install = false
 	}
 	return nil
