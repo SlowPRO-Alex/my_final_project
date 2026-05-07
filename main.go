@@ -5,23 +5,23 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/SlowPRO-Alex/my_final_project/pkg/api"
 	"github.com/SlowPRO-Alex/my_final_project/pkg/db"
-	"github.com/SlowPRO-Alex/my_final_project/tests"
 )
+
+const defaultPort = "7540"
 
 func main() {
 	sPort := os.Getenv("TODO_PORT")
 	if sPort == "" {
-		sPort = strconv.Itoa(tests.Port)
+		sPort = defaultPort
 	} else {
 		log.Printf("TODO_PORT = %s\n", sPort)
 	}
 	dbFile := os.Getenv("TODO_DBFILE")
 	if dbFile == "" {
-		dbFile = tests.DBFile
+		dbFile = "scheduler.db"
 	} else {
 		log.Printf("TODO_DBFILE = %s\n", dbFile)
 	}

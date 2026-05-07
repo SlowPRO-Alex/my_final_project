@@ -4,12 +4,15 @@ import (
 	"net/http"
 )
 
-const DFormat = "20060102"
+const (
+	DFormat = "20060102"
+	WebDir  = "./web"
+)
 
 type EmptyStruct struct{}
 
 func Init() {
-	http.Handle("/", http.FileServer(http.Dir("./web")))
+	http.Handle("/", http.FileServer(http.Dir(WebDir)))
 	http.HandleFunc("/api/nextdate", nextDayHandler)
 	http.HandleFunc("/api/signin", SignInHandler)
 
